@@ -7,7 +7,6 @@ import {
   ReceiveIcon,
   QuestionIcon,
 } from "@bitcoin-design/bitcoin-icons-react/filled";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAccount } from "~/app/context/AccountContext";
 import utils from "~/common/lib/utils";
@@ -17,7 +16,6 @@ import Menu from "../Menu";
 export default function UserMenu() {
   const navigate = useNavigate();
   const auth = useAccount();
-  const { t: tCommon } = useTranslation("common");
 
   function openOptions(path: string) {
     // if we are in the popup
@@ -52,7 +50,7 @@ export default function UserMenu() {
           }}
         >
           <TransactionsIcon className="h-5 w-5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("websites")}
+          Websites
         </Menu.ItemButton>
         <Menu.ItemButton
           onClick={() => {
@@ -60,7 +58,7 @@ export default function UserMenu() {
           }}
         >
           <SendIcon className="w-6 h-6 -ml-0.5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("actions.send")}
+          Send
         </Menu.ItemButton>
         <Menu.ItemButton
           onClick={() => {
@@ -68,7 +66,7 @@ export default function UserMenu() {
           }}
         >
           <ReceiveIcon className="w-6 h-6 -ml-0.5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("actions.receive")}
+          Receive
         </Menu.ItemButton>
         <Menu.ItemButton
           onClick={() => {
@@ -76,7 +74,7 @@ export default function UserMenu() {
           }}
         >
           <GearIcon className="h-5 w-5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("settings")}
+          Settings
         </Menu.ItemButton>
         <Menu.ItemButton
           onClick={() => {
@@ -84,12 +82,12 @@ export default function UserMenu() {
           }}
         >
           <QuestionIcon className="h-5 w-5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("feedback")}
+          Feedback
         </Menu.ItemButton>
         <Menu.Divider />
         <Menu.ItemButton onClick={lock}>
           <LockIcon className="h-5 w-5 mr-2 text-gray-700 dark:text-neutral-300" />
-          {tCommon("actions.lock")}
+          Lock
         </Menu.ItemButton>
       </Menu.List>
     </Menu>

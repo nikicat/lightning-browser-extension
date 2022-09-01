@@ -373,7 +373,6 @@
     "loading": "loading",
     "amount": "Amount",
     "optional": "Optional",
-    "feedback": "Feedback",
     "actions": {
       "delete": "Delete",
       "edit": "Edit",
@@ -381,7 +380,6 @@
       "cancel": "Cancel",
       "continue": "Continue",
       "connect": "Connect",
-      "lock": "Lock",
       "unlock": "Unlock",
       "send": "Send",
       "save": "Save",
