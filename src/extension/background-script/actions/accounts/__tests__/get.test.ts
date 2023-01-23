@@ -26,7 +26,7 @@ const mockState = {
       id: "8b7f1dc6-ab87-4c6c-bca5-19fa8632731e",
       name: "Alby",
       nostrPrivateKey: "nostr-123-456",
-      LiquidPrivateKey: "liquid-123-456",
+      liquidPrivateKey: "liquid-123-456",
     },
     "1e1e8ea6-493e-480b-9855-303d37506e97": {
       config: "config-123-456",
