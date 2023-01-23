@@ -141,7 +141,7 @@ export type NavigationState = {
     customRecords?: Record<string, string>;
     message?: string;
     event?: Event;
-    sigHash?: Buffer;
+    sigHash?: string;
     description?: string;
     details?: string;
     requestPermission: {
@@ -414,7 +414,7 @@ export interface MessageSignEvent extends MessageDefault {
 
 export interface MessageSignSchnorr extends MessageDefault {
   args: {
-    sigHash: Buffer;
+    sigHash: string;
   };
   action: "signSchnorr";
 }

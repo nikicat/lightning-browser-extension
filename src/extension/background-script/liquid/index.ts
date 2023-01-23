@@ -15,9 +15,13 @@ class Liquid {
     return publicKeyHex;
   }
 
-  async signSchnorr(sigHash: Buffer): Promise<Buffer> {
-    const sig = await secp256k1.schnorr.sign(sigHash, this.privateKey);
-    return Buffer.from(sig.buffer);
+  async signSchnorr(sigHash: string): Promise<string> {
+    const signature = await secp256k1.schnorr.sign(
+      Buffer.from(secp256k1.utils.hexToBytes(sigHash)),
+      secp256k1.utils.hexToBytes(this.privateKey)
+    );
+    const signedHex = secp256k1.utils.bytesToHex(signature);
+    return signedHex;
   }
 }
 

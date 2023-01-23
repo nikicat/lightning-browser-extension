@@ -22,7 +22,7 @@ function ConfirmSignSchnorr() {
   });
   const navigate = useNavigate();
 
-  const sigHash = navState.args?.sigHash as Buffer;
+  const sigHash = navState.args?.sigHash as string;
   const origin = navState.origin as OriginData;
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -78,7 +78,7 @@ function ConfirmSignSchnorr() {
               />
               <ContentMessage
                 heading={t("allow_sign", { host: origin.host })}
-                content={sigHash.toString()}
+                content={sigHash}
               />
               <div className="flex items-center">
                 <Checkbox
