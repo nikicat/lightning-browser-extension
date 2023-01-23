@@ -25,6 +25,7 @@ import { useSettings } from "~/app/context/SettingsContext";
 import api, { GetAccountRes } from "~/common/lib/api";
 import msg from "~/common/lib/msg";
 import nostrlib from "~/common/lib/nostr";
+import Liquid from "~/extension/background-script/liquid";
 import Nostr from "~/extension/background-script/nostr";
 import type { Account } from "~/types";
 
@@ -57,10 +58,14 @@ function AccountScreen() {
   });
   const [accountName, setAccountName] = useState("");
 
-  const [currentPrivateKey, setCurrentPrivateKey] = useState("");
+  const [currentNostrPrivateKey, setCurrentNostrPrivateKey] = useState("");
+  const [currentLiquidPrivateKey, setCurrentLiquidPrivateKey] = useState("");
   const [nostrPrivateKey, setNostrPrivateKey] = useState("");
   const [nostrPublicKey, setNostrPublicKey] = useState("");
   const [nostrPrivateKeyVisible, setNostrPrivateKeyVisible] = useState(false);
+  const [liquidPrivateKey, setLiquidPrivateKey] = useState("");
+  const [liquidPublicKey, setLiquidPublicKey] = useState("");
+  const [liquidPrivateKeyVisible, setLiquidPrivateKeyVisible] = useState(false);
   const [privateKeyCopyLabel, setPrivateKeyCopyLabel] = useState(
     tCommon("actions.copy") as string
   );
@@ -71,6 +76,7 @@ function AccountScreen() {
   const [exportLoading, setExportLoading] = useState(false);
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [nostrKeyModalIsOpen, setNostrKeyModalIsOpen] = useState(false);
+  const [liquidKeyModalIsOpen, setLiquidKeyModalIsOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -87,9 +93,18 @@ function AccountScreen() {
           id,
         })) as string;
         if (priv) {
-          setCurrentPrivateKey(priv);
+          setCurrentNostrPrivateKey(priv);
           setNostrPrivateKey(nostrlib.hexToNip19(priv, "nsec"));
           setNostrPublicKey(generatePublicKey(priv));
+        }
+
+        const privLiquid = (await msg.request("liquid/getPrivateKey", {
+          id,
+        })) as string;
+        if (privLiquid) {
+          setCurrentLiquidPrivateKey(privLiquid);
+          setLiquidPrivateKey(nostrlib.hexToNip19(privLiquid, "nsec"));
+          setLiquidPublicKey(generatePublicKey(privLiquid));
         }
       }
     } catch (e) {
@@ -104,6 +119,10 @@ function AccountScreen() {
 
   function closeNostrKeyModal() {
     setNostrKeyModalIsOpen(false);
+  }
+
+  function closeLiquidKeyModal() {
+    setLiquidKeyModalIsOpen(false);
   }
 
   function generatePublicKey(priv: string) {
@@ -135,9 +154,9 @@ function AccountScreen() {
   }
 
   async function saveNostrPrivateKey(nostrPrivateKey: string) {
-    if (nostrPrivateKey === currentPrivateKey) return;
+    if (nostrPrivateKey === currentNostrPrivateKey) return;
 
-    if (currentPrivateKey && !confirm(t("nostr.private_key.warning"))) {
+    if (currentNostrPrivateKey && !confirm(t("nostr.private_key.warning"))) {
       return;
     }
 
@@ -151,10 +170,62 @@ function AccountScreen() {
     } else {
       toast.success(t("nostr.private_key.successfully_removed"));
     }
-    setCurrentPrivateKey(nostrPrivateKey);
+    setCurrentNostrPrivateKey(nostrPrivateKey);
     setNostrPrivateKey(nostrPrivateKey);
     setNostrPublicKey(
       nostrPrivateKey ? generatePublicKey(nostrPrivateKey) : ""
+    );
+  }
+
+  function generateLiquidPublicKey(priv: string) {
+    const liquid = new Liquid(priv);
+    return liquid.getPublicKey();
+  }
+
+  async function generateLiquidPrivateKey(random?: boolean) {
+    const selectedAccount = await auth.fetchAccountInfo();
+
+    if (!random && selectedAccount?.id !== id) {
+      alert(
+        `Please match the account in the dropdown with this account to derive keys.`
+      );
+      closeLiquidKeyModal();
+      return;
+    }
+    // check with current selected account
+    const result = await msg.request(
+      "liquid/generatePrivateKey",
+      random
+        ? {
+            type: "random",
+          }
+        : undefined
+    );
+    saveLiquidPrivateKey(result.privateKey as string);
+    closeLiquidKeyModal();
+  }
+
+  async function saveLiquidPrivateKey(liquidPrivateKey: string) {
+    if (liquidPrivateKey === currentLiquidPrivateKey) return;
+
+    if (currentLiquidPrivateKey && !confirm(t("nostr.private_key.warning"))) {
+      return;
+    }
+
+    await msg.request("liquid/setPrivateKey", {
+      id: account?.id,
+      privateKey: nostrlib.normalizeToHex(liquidPrivateKey),
+    });
+
+    if (liquidPrivateKey) {
+      toast.success(t("nostr.private_key.success"));
+    } else {
+      toast.success(t("nostr.private_key.successfully_removed"));
+    }
+    setCurrentLiquidPrivateKey(liquidPrivateKey);
+    setLiquidPrivateKey(liquidPrivateKey);
+    setLiquidPublicKey(
+      liquidPrivateKey ? generateLiquidPublicKey(liquidPrivateKey) : ""
     );
   }
 
@@ -342,6 +413,7 @@ function AccountScreen() {
                 </div>
               </Setting>
             </div>
+
             <h2 className="text-2xl mt-12 font-bold dark:text-white">
               {t("nostr.title")}
             </h2>
@@ -440,9 +512,9 @@ function AccountScreen() {
                       saveNostrPrivateKey(nostrPrivateKey);
                     }}
                     disabled={
-                      nostrPrivateKey === currentPrivateKey ||
+                      nostrPrivateKey === currentNostrPrivateKey ||
                       nostrPrivateKey ===
-                        nostrlib.hexToNip19(currentPrivateKey, "nsec")
+                        nostrlib.hexToNip19(currentNostrPrivateKey, "nsec")
                     }
                     primary
                     fullWidth
@@ -466,6 +538,147 @@ function AccountScreen() {
                     onClick={async () => {
                       try {
                         navigator.clipboard.writeText(nostrPublicKey);
+                        setPublicKeyCopyLabel(tCommon("copied"));
+                        setTimeout(() => {
+                          setPublicKeyCopyLabel(tCommon("actions.copy"));
+                        }, 1000);
+                      } catch (e) {
+                        if (e instanceof Error) {
+                          toast.error(e.message);
+                        }
+                      }
+                    }}
+                    fullWidth
+                  />
+                </div>
+                <div className="w-1/5 flex-none d-none"></div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl mt-12 font-bold dark:text-white">
+              {t("nostr.title")}
+            </h2>
+            <p className="mb-6 text-gray-500 dark:text-neutral-500 text-sm">
+              <a
+                href="https://github.com/nostr-protocol/nostr"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline"
+              >
+                {t("nostr.title")}
+              </a>{" "}
+              {t("nostr.hint")}
+            </p>
+            <div className="shadow bg-white sm:rounded-md sm:overflow-hidden px-6 py-2 dark:bg-surface-02dp">
+              <div className="py-4 flex justify-between items-center">
+                <div>
+                  <span className="text-gray-900 dark:text-white font-medium">
+                    {t("nostr.private_key.title")}
+                  </span>
+                  <p className="text-gray-500 mr-1 dark:text-neutral-500 text-sm">
+                    <Trans
+                      i18nKey={"nostr.private_key.subtitle"}
+                      t={t}
+                      components={[
+                        // eslint-disable-next-line react/jsx-key
+                        <a
+                          className="underline"
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          href="https://guides.getalby.com/overall-guide/alby-browser-extension/features/nostr"
+                        ></a>,
+                      ]}
+                    />
+                  </p>
+                </div>
+                <div className="w-1/5 flex-none ml-6">
+                  <Button
+                    label={t("nostr.actions.generate")}
+                    onClick={() => setLiquidKeyModalIsOpen(true)}
+                    fullWidth
+                  />
+                </div>
+              </div>
+              <div className="mb-4 flex justify-between items-end">
+                <div className="w-7/12">
+                  <TextField
+                    id="nostrPrivateKey"
+                    label={t("nostr.private_key.label")}
+                    type={liquidPrivateKeyVisible ? "text" : "password"}
+                    value={liquidPrivateKey}
+                    onChange={(event) => {
+                      setLiquidPrivateKey(event.target.value);
+                    }}
+                    endAdornment={
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="flex justify-center items-center w-10 h-8"
+                        onClick={() => {
+                          setLiquidPrivateKeyVisible(!liquidPrivateKeyVisible);
+                        }}
+                      >
+                        {liquidPrivateKeyVisible ? (
+                          <HiddenIcon className="h-6 w-6" />
+                        ) : (
+                          <VisibleIcon className="h-6 w-6" />
+                        )}
+                      </button>
+                    }
+                  />
+                </div>
+                <div className="w-1/5 flex-none mx-4">
+                  <Button
+                    label={privateKeyCopyLabel}
+                    onClick={async () => {
+                      try {
+                        navigator.clipboard.writeText(liquidPrivateKey);
+                        setPrivateKeyCopyLabel(tCommon("copied"));
+                        setTimeout(() => {
+                          setPrivateKeyCopyLabel(tCommon("actions.copy"));
+                        }, 1000);
+                      } catch (e) {
+                        if (e instanceof Error) {
+                          toast.error(e.message);
+                        }
+                      }
+                    }}
+                    fullWidth
+                  />
+                </div>
+                <div className="w-1/5 flex-none">
+                  <Button
+                    label={tCommon("actions.save")}
+                    onClick={() => {
+                      saveLiquidPrivateKey(liquidPrivateKey);
+                    }}
+                    disabled={
+                      liquidPrivateKey === currentLiquidPrivateKey ||
+                      liquidPrivateKey ===
+                        nostrlib.hexToNip19(currentLiquidPrivateKey, "nsec")
+                    }
+                    primary
+                    fullWidth
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4 flex justify-between items-end">
+                <div className="w-7/12">
+                  <TextField
+                    id="nostrPublicKey"
+                    label={t("nostr.public_key.label")}
+                    type="text"
+                    value={liquidPublicKey}
+                    disabled
+                  />
+                </div>
+                <div className="w-1/5 flex-none mx-4">
+                  <Button
+                    label={publicKeyCopyLabel}
+                    onClick={async () => {
+                      try {
+                        navigator.clipboard.writeText(liquidPublicKey);
                         setPublicKeyCopyLabel(tCommon("copied"));
                         setTimeout(() => {
                           setPublicKeyCopyLabel(tCommon("actions.copy"));
@@ -543,6 +756,47 @@ function AccountScreen() {
                   <Button
                     type="submit"
                     onClick={() => generateNostrPrivateKey()}
+                    label={t("nostr.generate_keys.actions.derived_keys")}
+                    primary
+                    halfWidth
+                  />
+                </div>
+              </div>
+            </Modal>
+
+            <Modal
+              ariaHideApp={false}
+              closeTimeoutMS={200}
+              isOpen={liquidKeyModalIsOpen}
+              onRequestClose={closeLiquidKeyModal}
+              contentLabel={t("nostr.generate_keys.screen_reader")}
+              overlayClassName="bg-black bg-opacity-25 fixed inset-0 flex justify-center items-center p-5"
+              className="rounded-lg bg-white w-full max-w-lg"
+            >
+              <div className="p-5 flex justify-between dark:bg-surface-02dp">
+                <h2 className="text-2xl font-bold dark:text-white">
+                  {t("nostr.generate_keys.title")}
+                </h2>
+                <button onClick={closeLiquidKeyModal}>
+                  <CrossIcon className="w-6 h-6 dark:text-white" />
+                </button>
+              </div>
+              <div className="p-5 border-t border-b border-gray-200 dark:bg-surface-02dp dark:border-neutral-500">
+                <div className="flex justify-center space-x-3 items-center dark:text-white">
+                  {t("nostr.generate_keys.hint")}
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex flex-row justify-between">
+                  <Button
+                    type="submit"
+                    onClick={() => generateLiquidPrivateKey(true)}
+                    label={t("nostr.generate_keys.actions.random_keys")}
+                    halfWidth
+                  />
+                  <Button
+                    type="submit"
+                    onClick={() => generateLiquidPrivateKey()}
                     label={t("nostr.generate_keys.actions.derived_keys")}
                     primary
                     halfWidth
