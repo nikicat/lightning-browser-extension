@@ -556,44 +556,24 @@ function AccountScreen() {
             </div>
 
             <h2 className="text-2xl mt-12 font-bold dark:text-white">
-              {t("nostr.title")}
+              {t("liquid.title")}
             </h2>
             <p className="mb-6 text-gray-500 dark:text-neutral-500 text-sm">
-              <a
-                href="https://github.com/nostr-protocol/nostr"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="underline"
-              >
-                {t("nostr.title")}
-              </a>{" "}
-              {t("nostr.hint")}
+              {t("liquid.hint")}
             </p>
             <div className="shadow bg-white sm:rounded-md sm:overflow-hidden px-6 py-2 dark:bg-surface-02dp">
               <div className="py-4 flex justify-between items-center">
                 <div>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    {t("nostr.private_key.title")}
+                    {t("liquid.private_key.title")}
                   </span>
                   <p className="text-gray-500 mr-1 dark:text-neutral-500 text-sm">
-                    <Trans
-                      i18nKey={"nostr.private_key.subtitle"}
-                      t={t}
-                      components={[
-                        // eslint-disable-next-line react/jsx-key
-                        <a
-                          className="underline"
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          href="https://guides.getalby.com/overall-guide/alby-browser-extension/features/nostr"
-                        ></a>,
-                      ]}
-                    />
+                    {t("liquid.private_key.subtitle")}
                   </p>
                 </div>
                 <div className="w-1/5 flex-none ml-6">
                   <Button
-                    label={t("nostr.actions.generate")}
+                    label={t("liquid.actions.generate")}
                     onClick={() => setLiquidKeyModalIsOpen(true)}
                     fullWidth
                   />
@@ -603,7 +583,7 @@ function AccountScreen() {
                 <div className="w-7/12">
                   <TextField
                     id="nostrPrivateKey"
-                    label={t("nostr.private_key.label")}
+                    label={t("liquid.private_key.label")}
                     type={liquidPrivateKeyVisible ? "text" : "password"}
                     value={liquidPrivateKey}
                     onChange={(event) => {
@@ -666,8 +646,8 @@ function AccountScreen() {
               <div className="mb-4 flex justify-between items-end">
                 <div className="w-7/12">
                   <TextField
-                    id="nostrPublicKey"
-                    label={t("nostr.public_key.label")}
+                    id="liquidPublicKey"
+                    label={t("liquid.public_key.label")}
                     type="text"
                     value={liquidPublicKey}
                     disabled
@@ -769,13 +749,13 @@ function AccountScreen() {
               closeTimeoutMS={200}
               isOpen={liquidKeyModalIsOpen}
               onRequestClose={closeLiquidKeyModal}
-              contentLabel={t("nostr.generate_keys.screen_reader")}
+              contentLabel={t("liquid.generate_keys.screen_reader")}
               overlayClassName="bg-black bg-opacity-25 fixed inset-0 flex justify-center items-center p-5"
               className="rounded-lg bg-white w-full max-w-lg"
             >
               <div className="p-5 flex justify-between dark:bg-surface-02dp">
                 <h2 className="text-2xl font-bold dark:text-white">
-                  {t("nostr.generate_keys.title")}
+                  {t("liquid.generate_keys.title")}
                 </h2>
                 <button onClick={closeLiquidKeyModal}>
                   <CrossIcon className="w-6 h-6 dark:text-white" />
@@ -783,7 +763,7 @@ function AccountScreen() {
               </div>
               <div className="p-5 border-t border-b border-gray-200 dark:bg-surface-02dp dark:border-neutral-500">
                 <div className="flex justify-center space-x-3 items-center dark:text-white">
-                  {t("nostr.generate_keys.hint")}
+                  {t("liquid.generate_keys.hint")}
                 </div>
               </div>
               <div className="p-4">
@@ -791,13 +771,13 @@ function AccountScreen() {
                   <Button
                     type="submit"
                     onClick={() => generateLiquidPrivateKey(true)}
-                    label={t("nostr.generate_keys.actions.random_keys")}
+                    label={t("liquid.generate_keys.actions.random_keys")}
                     halfWidth
                   />
                   <Button
                     type="submit"
                     onClick={() => generateLiquidPrivateKey()}
-                    label={t("nostr.generate_keys.actions.derived_keys")}
+                    label={t("liquid.generate_keys.actions.derived_keys")}
                     primary
                     halfWidth
                   />
