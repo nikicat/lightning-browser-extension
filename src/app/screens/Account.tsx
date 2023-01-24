@@ -103,7 +103,7 @@ function AccountScreen() {
         })) as string;
         if (privLiquid) {
           setCurrentLiquidPrivateKey(privLiquid);
-          setLiquidPrivateKey(nostrlib.hexToNip19(privLiquid, "nsec"));
+          setLiquidPrivateKey(privLiquid);
           setLiquidPublicKey(generatePublicKey(privLiquid));
         }
       }
@@ -632,11 +632,7 @@ function AccountScreen() {
                     onClick={() => {
                       saveLiquidPrivateKey(liquidPrivateKey);
                     }}
-                    disabled={
-                      liquidPrivateKey === currentLiquidPrivateKey ||
-                      liquidPrivateKey ===
-                        nostrlib.hexToNip19(currentLiquidPrivateKey, "nsec")
-                    }
+                    disabled={liquidPrivateKey === currentLiquidPrivateKey}
                     primary
                     fullWidth
                   />
