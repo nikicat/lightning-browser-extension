@@ -24,7 +24,7 @@ class DB extends Dexie {
     this.version(2).stores({
       blocklist: "++id,host,name,imageURL,isBlocked,createdAt",
     });
-    this.version(8).stores({
+    this.version(3).stores({
       permissions: "++id,allowanceId,host,method,enabled,blocked,createdAt",
     });
     this.on("ready", this.loadFromStorage.bind(this));

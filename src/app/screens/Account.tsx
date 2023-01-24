@@ -66,17 +66,22 @@ function AccountScreen() {
   const [liquidPrivateKey, setLiquidPrivateKey] = useState("");
   const [liquidPublicKey, setLiquidPublicKey] = useState("");
   const [liquidPrivateKeyVisible, setLiquidPrivateKeyVisible] = useState(false);
-  const [privateKeyCopyLabel, setPrivateKeyCopyLabel] = useState(
+  const [nostrPrivateKeyCopyLabel, setNostrPrivateKeyCopyLabel] = useState(
     tCommon("actions.copy") as string
   );
-  const [publicKeyCopyLabel, setPublicKeyCopyLabel] = useState(
+  const [nostrPublicKeyCopyLabel, setNostrPublicKeyCopyLabel] = useState(
+    tCommon("actions.copy") as string
+  );
+  const [liquidPrivateKeyCopyLabel, setLiquidPrivateKeyCopyLabel] = useState(
+    tCommon("actions.copy") as string
+  );
+  const [liquidPublicKeyCopyLabel, setLiquidPublicKeyCopyLabel] = useState(
     tCommon("actions.copy") as string
   );
 
   const [exportLoading, setExportLoading] = useState(false);
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [nostrKeyModalIsOpen, setNostrKeyModalIsOpen] = useState(false);
-  const [liquidKeyModalIsOpen, setLiquidKeyModalIsOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -119,10 +124,6 @@ function AccountScreen() {
 
   function closeNostrKeyModal() {
     setNostrKeyModalIsOpen(false);
-  }
-
-  function closeLiquidKeyModal() {
-    setLiquidKeyModalIsOpen(false);
   }
 
   function generatePublicKey(priv: string) {
@@ -182,27 +183,9 @@ function AccountScreen() {
     return liquid.getPublicKey();
   }
 
-  async function generateLiquidPrivateKey(random?: boolean) {
-    const selectedAccount = await auth.fetchAccountInfo();
-
-    if (!random && selectedAccount?.id !== id) {
-      alert(
-        `Please match the account in the dropdown with this account to derive keys.`
-      );
-      closeLiquidKeyModal();
-      return;
-    }
-    // check with current selected account
-    const result = await msg.request(
-      "liquid/generatePrivateKey",
-      random
-        ? {
-            type: "random",
-          }
-        : undefined
-    );
+  async function generateLiquidPrivateKey() {
+    const result = await msg.request("liquid/generatePrivateKey");
     saveLiquidPrivateKey(result.privateKey as string);
-    closeLiquidKeyModal();
   }
 
   async function saveLiquidPrivateKey(liquidPrivateKey: string) {
@@ -488,13 +471,13 @@ function AccountScreen() {
                 </div>
                 <div className="w-1/5 flex-none mx-4">
                   <Button
-                    label={privateKeyCopyLabel}
+                    label={nostrPrivateKeyCopyLabel}
                     onClick={async () => {
                       try {
                         navigator.clipboard.writeText(nostrPrivateKey);
-                        setPrivateKeyCopyLabel(tCommon("copied"));
+                        setNostrPrivateKeyCopyLabel(tCommon("copied"));
                         setTimeout(() => {
-                          setPrivateKeyCopyLabel(tCommon("actions.copy"));
+                          setNostrPrivateKeyCopyLabel(tCommon("actions.copy"));
                         }, 1000);
                       } catch (e) {
                         if (e instanceof Error) {
@@ -534,13 +517,13 @@ function AccountScreen() {
                 </div>
                 <div className="w-1/5 flex-none mx-4">
                   <Button
-                    label={publicKeyCopyLabel}
+                    label={nostrPublicKeyCopyLabel}
                     onClick={async () => {
                       try {
                         navigator.clipboard.writeText(nostrPublicKey);
-                        setPublicKeyCopyLabel(tCommon("copied"));
+                        setNostrPublicKeyCopyLabel(tCommon("copied"));
                         setTimeout(() => {
-                          setPublicKeyCopyLabel(tCommon("actions.copy"));
+                          setNostrPublicKeyCopyLabel(tCommon("actions.copy"));
                         }, 1000);
                       } catch (e) {
                         if (e instanceof Error) {
@@ -574,7 +557,7 @@ function AccountScreen() {
                 <div className="w-1/5 flex-none ml-6">
                   <Button
                     label={t("liquid.actions.generate")}
-                    onClick={() => setLiquidKeyModalIsOpen(true)}
+                    onClick={() => generateLiquidPrivateKey()}
                     fullWidth
                   />
                 </div>
@@ -609,13 +592,13 @@ function AccountScreen() {
                 </div>
                 <div className="w-1/5 flex-none mx-4">
                   <Button
-                    label={privateKeyCopyLabel}
+                    label={liquidPrivateKeyCopyLabel}
                     onClick={async () => {
                       try {
                         navigator.clipboard.writeText(liquidPrivateKey);
-                        setPrivateKeyCopyLabel(tCommon("copied"));
+                        setLiquidPrivateKeyCopyLabel(tCommon("copied"));
                         setTimeout(() => {
-                          setPrivateKeyCopyLabel(tCommon("actions.copy"));
+                          setLiquidPrivateKeyCopyLabel(tCommon("actions.copy"));
                         }, 1000);
                       } catch (e) {
                         if (e instanceof Error) {
@@ -651,13 +634,13 @@ function AccountScreen() {
                 </div>
                 <div className="w-1/5 flex-none mx-4">
                   <Button
-                    label={publicKeyCopyLabel}
+                    label={liquidPublicKeyCopyLabel}
                     onClick={async () => {
                       try {
                         navigator.clipboard.writeText(liquidPublicKey);
-                        setPublicKeyCopyLabel(tCommon("copied"));
+                        setLiquidPublicKeyCopyLabel(tCommon("copied"));
                         setTimeout(() => {
-                          setPublicKeyCopyLabel(tCommon("actions.copy"));
+                          setLiquidPublicKeyCopyLabel(tCommon("actions.copy"));
                         }, 1000);
                       } catch (e) {
                         if (e instanceof Error) {
@@ -733,47 +716,6 @@ function AccountScreen() {
                     type="submit"
                     onClick={() => generateNostrPrivateKey()}
                     label={t("nostr.generate_keys.actions.derived_keys")}
-                    primary
-                    halfWidth
-                  />
-                </div>
-              </div>
-            </Modal>
-
-            <Modal
-              ariaHideApp={false}
-              closeTimeoutMS={200}
-              isOpen={liquidKeyModalIsOpen}
-              onRequestClose={closeLiquidKeyModal}
-              contentLabel={t("liquid.generate_keys.screen_reader")}
-              overlayClassName="bg-black bg-opacity-25 fixed inset-0 flex justify-center items-center p-5"
-              className="rounded-lg bg-white w-full max-w-lg"
-            >
-              <div className="p-5 flex justify-between dark:bg-surface-02dp">
-                <h2 className="text-2xl font-bold dark:text-white">
-                  {t("liquid.generate_keys.title")}
-                </h2>
-                <button onClick={closeLiquidKeyModal}>
-                  <CrossIcon className="w-6 h-6 dark:text-white" />
-                </button>
-              </div>
-              <div className="p-5 border-t border-b border-gray-200 dark:bg-surface-02dp dark:border-neutral-500">
-                <div className="flex justify-center space-x-3 items-center dark:text-white">
-                  {t("liquid.generate_keys.hint")}
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="flex flex-row justify-between">
-                  <Button
-                    type="submit"
-                    onClick={() => generateLiquidPrivateKey(true)}
-                    label={t("liquid.generate_keys.actions.random_keys")}
-                    halfWidth
-                  />
-                  <Button
-                    type="submit"
-                    onClick={() => generateLiquidPrivateKey()}
-                    label={t("liquid.generate_keys.actions.derived_keys")}
                     primary
                     halfWidth
                   />
