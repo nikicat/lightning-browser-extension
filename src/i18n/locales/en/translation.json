@@ -419,15 +419,6 @@
           "public_key": {
             "label": "Liquid Public Key"
           },
-          "generate_keys": {
-            "title": "Generate new Liquid Keys",
-            "screen_reader": "Generate new liquid keys for your account",
-            "hint": "You can generate random set of Liquid keys or cryptographically derive keys from this Alby account. You will be able to derive the same set of keys from this account on every device.",
-            "actions": {
-              "random_keys": "Generate random keys",
-              "derived_keys": "Derive keys from account"
-            }
-          },
           "actions": {
             "generate": "Generate new keys"
           }
