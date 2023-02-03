@@ -252,7 +252,7 @@ function LNURLPay() {
       const metadata = JSON.parse(details.metadata);
       const image = metadata.find(
         ([type]: [string]) =>
-          type === "image/png;base64" || type === "image/jpeg;base64"
+          type === "image/png;base64" || type === "image/jpeg;base64" || type === "image/svg+xml;base64"
       );
 
       if (image) return `data:${image[0]},${image[1]}`;
